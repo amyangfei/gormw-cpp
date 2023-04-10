@@ -27,7 +27,6 @@ auto Gor::parse_query_string(std::string query)
   std::unordered_map<std::string, std::vector<std::string>> query_dict;
   std::string key, value;
   int idx = 0, sep1 = 0, sep2 = 0;
-  std::cout << "parse_query_string, query: " << query << std::endl;
   while (true) {
     sep1 = query.find("=", idx);
     key = query.substr(idx, sep1 - idx);
@@ -37,7 +36,6 @@ auto Gor::parse_query_string(std::string query)
     } else {
       value = query.substr(sep1 + 1, sep2 - sep1 - 1);
     }
-    std::cout << "key:" << key << " value:" << value << std::endl;
     query_dict[key].push_back(value);
     if (sep2 == std::string::npos) {
       break;
@@ -59,8 +57,6 @@ auto Gor::quote_plus(const std::string &value) -> std::string {
       quoted_str += hex;
     }
   }
-  std::cout << "quote_plus "
-            << "value: " << value << " quoted: " << quoted_str << std::endl;
   return quoted_str;
 }
 
