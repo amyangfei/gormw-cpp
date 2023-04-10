@@ -46,18 +46,26 @@ auto Gor::parse_query_string(std::string query)
 }
 
 auto Gor::quote_plus(const std::string &value) -> std::string {
-  std::string quoted_str = "";
-  for (auto &c : value) {
-    if (isalnum(c)) {
-      quoted_str += c;
-    } else {
-      char hex[3];
-      snprintf(hex, sizeof(hex), "%02X", (unsigned char)c);
-      quoted_str += '%';
-      quoted_str += hex;
+  std::ostringstream escaped;
+  escaped.fill('0');
+  escaped << std::hex;
+
+  for (auto it = value.begin(); it != value.end(); ++it) {
+    std::string::value_type c = (*it);
+
+    // Keep alphanumeric and other accepted characters intact
+    if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
+      escaped << c;
+      continue;
     }
+
+    // Any other characters are percent-encoded
+    escaped << std::uppercase;
+    escaped << '%' << std::setw(2) << int((unsigned char)c);
+    escaped << std::nouppercase;
   }
-  return quoted_str;
+
+  return escaped.str();
 }
 
 auto Gor::http_method(std::string payload) -> std::string {

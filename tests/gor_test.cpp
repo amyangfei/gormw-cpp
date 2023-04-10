@@ -57,6 +57,11 @@ TEST(GorTest, HttpParam) {
   EXPECT_TRUE(found);
   EXPECT_FALSE(v2.empty());
   EXPECT_TRUE(vector_contains_value(v2, "ty"));
+
+  payload = g->set_http_path_param(payload, "comp", "value !@#$%^&*()_+");
+  EXPECT_EQ(
+      g->http_path(payload),
+      "/?test=123&qwer=ty&comp=value%20%21%40%23%24%25%5E%26%2A%28%29_%2B");
 }
 
 TEST(GorTest, DecodeChunked) {
