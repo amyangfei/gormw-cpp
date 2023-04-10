@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace gor {
@@ -22,6 +23,22 @@ public:
   std::vector<std::string> metas;
   std::string raw_meta;
   std::string http;
+};
+
+class Gor {
+private:
+  auto parse_query_string(std::string payload)
+      -> std::unordered_map<std::string, std::vector<std::string>>;
+  auto quote_plus(const std::string &value) -> std::string;
+
+public:
+  auto http_method(std::string payload) -> std::string;
+  auto http_path(std::string payload) -> std::string;
+  auto set_http_path(std::string payload, std::string new_path) -> std::string;
+  auto http_path_param(std::string payload, std::string name, bool *found)
+      -> std::vector<std::string>;
+  auto set_http_path_param(std::string payload, std::string name,
+                           std::string value) -> std::string;
 };
 
 class Utils {
