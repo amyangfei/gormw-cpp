@@ -1,34 +1,34 @@
 #ifndef INCLUDE_GOR_H_
 #define INCLUDE_GOR_H_
 
+#include <iostream>
 #include <string>
 #include <vector>
-#include <iostream>
-
-using namespace std;
 
 namespace gor {
 
 class GorMessage {
 
 public:
-  explicit GorMessage(string _id, string _type, vector<string> metas, string raw_meta, string http) 
+  explicit GorMessage(std::string _id, std::string _type,
+                      std::vector<std::string> metas, std::string raw_meta,
+                      std::string http)
       : id(_id), type(_type), metas(metas), raw_meta(raw_meta), http(http) {}
 
-  auto hexlify() -> string;
+  auto hexlify() -> std::string;
 
-  string id;
-  string type;
-  vector<string> metas;
-  string raw_meta;
-  string http;
+  std::string id;
+  std::string type;
+  std::vector<std::string> metas;
+  std::string raw_meta;
+  std::string http;
 };
 
 class Utils {
 public:
-  static auto decode_chunked(string &chunked_data) -> string;
+  static auto decode_chunked(std::string &chunked_data) -> std::string;
 };
 
 } // namespace gor
 
-#endif  // INCLUDE_GOR_H_
+#endif // INCLUDE_GOR_H_

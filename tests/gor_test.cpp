@@ -9,6 +9,8 @@ TEST(GorTest, Hexlify) {
 }
 
 TEST(GorTest, DecodeChunked) {
-  string chunked_data = "4\r\nWiki\r\n6\r\npedia \r\nE\r\nin \r\n\r\nchunks.\r\n0\r\n\r\n";
-  EXPECT_EQ(Utils::decode_chunked(chunked_data), "Wikipedia in \r\n\r\nchunks.");
+  std::string chunked_data =
+      "4\r\nWiki\r\n6\r\npedia \r\nE\r\nin \r\n\r\nchunks.\r\n0\r\n\r\n";
+  EXPECT_EQ(Utils::decode_chunked(chunked_data),
+            "Wikipedia in \r\n\r\nchunks.");
 }
