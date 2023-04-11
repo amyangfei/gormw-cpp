@@ -4,6 +4,14 @@ project(gormw-cpp)
 # GoogleTest requires at least C++14
 set(CMAKE_CXX_STANDARD 14)
 
+include(cmake/CPM.cmake)
+CPMAddPackage(
+    NAME Boost
+    VERSION 1.81.0
+    GITHUB_REPOSITORY "boostorg/boost"
+    GIT_TAG "boost-1.81.0"
+)
+
 ######################################################################################################################
 # COMPILER SETUP
 ######################################################################################################################

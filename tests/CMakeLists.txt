@@ -15,6 +15,14 @@ FetchContent_MakeAvailable(googletest)
 
 include(GoogleTest)
 
+include(../cmake/CPM.cmake)
+CPMAddPackage(
+  NAME Boost
+  VERSION 1.81.0
+  GITHUB_REPOSITORY "boostorg/boost"
+  GIT_TAG "boost-1.81.0"
+)
+
 enable_testing()
 
 file(GLOB_RECURSE GOR_TEST_SOURCES "${PROJECT_SOURCE_DIR}/tests/*test.cpp")
@@ -50,7 +58,7 @@ foreach (gor_test_source ${GOR_TEST_SOURCES})
             TIMEOUT 120
             )
 
-    target_link_libraries(${gor_test_name} gor gtest gmock_main)
+    target_link_libraries(${gor_test_name} gor gtest gmock_main Boost::iostreams)
 
     # Set test target properties and dependencies.
     set_target_properties(${gor_test_name}
