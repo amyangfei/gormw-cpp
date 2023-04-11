@@ -94,6 +94,62 @@ TEST(GorTest, HttpHeader) {
   }
 }
 
+TEST(GorTest, SetHttpHeader) {
+  std::string payload = "GET / HTTP/1.1\r\nUser-Agent: Cpp\r\nContent-Length: "
+                        "5\r\n\r\nhello";
+  std::vector<std::pair<std::string, std::string>> cases{
+      {"", "GET / HTTP/1.1\r\nUser-Agent: \r\nContent-Length: 5\r\n\r\nhello"},
+      {"1",
+       "GET / HTTP/1.1\r\nUser-Agent: 1\r\nContent-Length: 5\r\n\r\nhello"},
+      {"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_0)",
+       "GET / HTTP/1.1\r\nUser-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X "
+       "10_13_0)\r\nContent-Length: 5\r\n\r\nhello"},
+  };
+  for (auto it = cases.begin(); it != cases.end(); ++it) {
+    std::string key = "User-Agent";
+    std::string value = it->first;
+    std::string expected = it->second;
+    std::string new_payload = HttpUtils::set_http_header(payload, key, value);
+    EXPECT_EQ(new_payload, expected);
+  }
+
+  std::string new_payload =
+      HttpUtils::set_http_header(payload, "X-Test", "test");
+  EXPECT_EQ(
+      new_payload,
+      "GET / HTTP/1.1\r\nX-Test: test\r\nUser-Agent: Cpp\r\nContent-Length: "
+      "5\r\n\r\nhello");
+
+  new_payload = HttpUtils::set_http_header(new_payload, "X-Test2", "test2");
+  EXPECT_EQ(new_payload, "GET / HTTP/1.1\r\nX-Test2: test2\r\nX-Test: "
+                         "test\r\nUser-Agent: Cpp\r\nContent-Length: "
+                         "5\r\n\r\nhello");
+}
+
+TEST(GorTest, DeleteHttpHeader) {
+  std::string payload = "GET / HTTP/1.1\r\nUser-Agent: "
+                        "Cpp\r\nContent-Length: 5\r\n\r\nhello";
+  std::string new_payload =
+      HttpUtils::delete_http_header(payload, "User-Agent");
+  EXPECT_EQ(new_payload, "GET / HTTP/1.1\r\nContent-Length: 5\r\n\r\nhello");
+  new_payload = HttpUtils::delete_http_header(new_payload, "not-exists-header");
+  EXPECT_EQ(new_payload, "GET / HTTP/1.1\r\nContent-Length: 5\r\n\r\nhello");
+}
+
+TEST(GorTest, HttpBody) {
+  std::string payload =
+      "GET / HTTP/1.1\r\nUser-Agent: Python\r\nContent-Length: 5\r\n\r\nhello";
+  std::string body = HttpUtils::http_body(payload);
+  EXPECT_EQ(body, "hello");
+
+  std::string invalid_payload =
+      "GET / HTTP/1.1\r\nUser-Agent: Python\r\nContent-Length: 5\r\nhello";
+  body = HttpUtils::http_body(invalid_payload);
+  EXPECT_EQ(body, "");
+
+  // TODO: add gzip body test
+}
+
 TEST(GorTest, DecodeChunked) {
   std::string chunked_data =
       "4\r\nWiki\r\n6\r\npedia \r\nE\r\nin \r\n\r\nchunks.\r\n0\r\n\r\n";

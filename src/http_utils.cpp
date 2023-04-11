@@ -185,6 +185,43 @@ auto HttpUtils::http_header(std::string payload, std::string name, bool *found)
   return std::make_tuple(-1, -1, -1, "");
 }
 
+auto HttpUtils::set_http_header(std::string payload, std::string name,
+                                std::string value) -> std::string {
+  int value_start = -1, end = -1;
+  bool found;
+  std::tie(std::ignore, end, value_start, std::ignore) =
+      http_header(payload, name, &found);
+  if (found) {
+    return payload.substr(0, value_start) + " " + value + "\r\n" +
+           payload.substr(end);
+  } else {
+    int header_start = payload.find("\n") + 1;
+    return payload.substr(0, header_start) + name + ": " + value + "\r\n" +
+           payload.substr(header_start);
+  }
+}
+
+auto HttpUtils::delete_http_header(std::string payload, std::string name)
+    -> std::string {
+  int start, end;
+  bool found;
+  std::tie(start, end, std::ignore, std::ignore) =
+      http_header(payload, name, &found);
+  if (!found) {
+    return payload;
+  } else {
+    return payload.substr(0, start) + payload.substr(end);
+  }
+}
+
+auto HttpUtils::http_body(std::string payload) -> std::string {
+  size_t start_index = payload.find("\r\n\r\n");
+  if (start_index == std::string::npos) {
+    return "";
+  }
+  return payload.substr(start_index + 4);
+}
+
 auto HttpUtils::trim(const std::string &source) -> std::string {
   std::string s(source);
   s.erase(0, s.find_first_not_of(" \n\r\t"));
