@@ -2,6 +2,7 @@ add_library(
   gor
   OBJECT
   gor.cpp
+  http_utils.cpp
 )
 
 set(ALL_OBJECT_FILES
