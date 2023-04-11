@@ -1,4 +1,5 @@
 #include "http_utils.h"
+#include "gzip/decompress.hpp"
 #include <iomanip>
 #include <iostream>
 #include <regex>
@@ -235,7 +236,16 @@ auto HttpUtils::set_http_body(std::string payload, std::string new_body)
 }
 
 auto HttpUtils::decompress_gzip_body(std::string payload) -> std::string {
-  throw std::logic_error("unimplemented");
+  auto headers = http_headers(payload);
+  std::string body = http_body(payload);
+  if (headers.find("Content-Encoding") != headers.end() &&
+      headers["Content-Encoding"] == "gzip") {
+    if (headers["Transfer-Encoding"] == "chunked") {
+      body = decode_chunked(body);
+    }
+    return gzip::decompress(body.c_str(), body.length());
+  }
+  return body;
 }
 
 auto HttpUtils::trim(const std::string &source) -> std::string {

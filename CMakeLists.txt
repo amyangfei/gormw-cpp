@@ -5,6 +5,12 @@ project(gormw-cpp)
 set(CMAKE_CXX_STANDARD 14)
 
 ######################################################################################################################
+# ADD DEPENDENCIES
+######################################################################################################################
+
+include(cmake/CPM.cmake)
+
+######################################################################################################################
 # COMPILER SETUP
 ######################################################################################################################
 
@@ -32,7 +38,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # Includes.
-set(GOR_SRC_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/src/include)
+set(GOR_SRC_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/src/include ${PROJECT_SOURCE_DIR}/src/include/gzip)
 
 include_directories(${GOR_SRC_INCLUDE_DIR})
 include_directories(BEFORE src) # This is needed for gtest.

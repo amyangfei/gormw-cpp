@@ -164,6 +164,35 @@ TEST(GorTest, SetHttpBody) {
                           "Cpp\r\nContent-Length: 13\r\n\r\nhello, world!");
 }
 
+std::string hex_to_string(std::string hex_str) {
+  int len = hex_str.length();
+  std::string newString;
+  for (int i = 0; i < len; i += 2) {
+    std::string byte = hex_str.substr(i, 2);
+    char chr = (char)(int)strtol(byte.c_str(), nullptr, 16);
+    newString.push_back(chr);
+  }
+  return newString;
+}
+
+TEST(GorTest, DecompressGZipBody) {
+  std::string gzip_body_hex =
+      "485454502f312e3120323030204f4b0d0a5365727665723a206e67696e782f312e3233"
+      "2e310d0a446174653a204d6f6e2c2031322053657020323032322030313a30383a3431"
+      "20474d540d0a436f6e74656e742d547970653a206170706c69636174696f6e2f6a736f"
+      "6e0d0a5472616e736665722d456e636f64696e673a206368756e6b65640d0a436f6e6e"
+      "656374696f6e3a206b6565702d616c6976650d0a566172793a204163636570742d456e"
+      "636f64696e670d0a436f6e74656e742d456e636f64696e673a20677a69700d0a0d0a35"
+      "640d0a1f8b0800000000000403ab564ace4f4955b2523254d25150ca4d2d2e4e4c0772"
+      "159432527372f2416229a92589993920a197bb5b9e6ddafcb8a1f1e5d4fdcf36ce7fdc"
+      "d0949a9b9f9569a5f061fe8c2e204fa916005a29ad344e0000000d0a300d0a0d0a";
+  std::string gzip_payload = hex_to_string(gzip_body_hex);
+  std::string body = HttpUtils::decompress_gzip_body(gzip_payload);
+  EXPECT_EQ(
+      body,
+      R"({"code":"1", "message": "hello", "detail": "黄河、长江。emoji: 😊。"})");
+}
+
 TEST(GorTest, DecodeChunked) {
   std::string chunked_data =
       "4\r\nWiki\r\n6\r\npedia \r\nE\r\nin \r\n\r\nchunks.\r\n0\r\n\r\n";
