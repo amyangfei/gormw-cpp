@@ -4,6 +4,7 @@
 #include <regex>
 #include <sstream>
 #include <string>
+#include <tuple>
 
 using namespace gor;
 
@@ -96,6 +97,99 @@ auto HttpUtils::set_http_path_param(std::string payload, std::string name,
     new_path += name + '=' + quote_plus(value);
   }
   return set_http_path(payload, new_path);
+}
+
+// HTTP response have status code in same position as `path` for requests
+auto HttpUtils::http_status(std::string payload) -> std::string {
+  return http_path(payload);
+}
+
+auto HttpUtils::set_http_status(std::string payload, std::string new_status)
+    -> std::string {
+  return set_http_path(payload, new_status);
+}
+
+// Parse the payload and return http headers in a map
+// :param payload: the http payload to inspect
+// :return: a map mapping from key to value of each http header item
+auto HttpUtils::http_headers(std::string payload)
+    -> std::unordered_map<std::string, std::string> {
+  size_t start_index = payload.find("\r\n");
+  size_t end_index = payload.find("\r\n\r\n");
+  std::unordered_map<std::string, std::string> headers;
+  std::vector<std::string> items;
+  std::string item;
+  start_index += 2;
+  size_t pos;
+  while (true) {
+    pos = payload.find("\r\n", start_index);
+    item = payload.substr(start_index, pos - start_index);
+    start_index = pos + 2;
+
+    size_t sep_index = item.find(":");
+    std::string key = item.substr(0, sep_index);
+    std::string value = trim(item.substr(sep_index + 1));
+    headers[key] = value;
+
+    if (pos == end_index || pos == std::string::npos) {
+      break;
+    }
+  }
+  return headers;
+}
+
+auto HttpUtils::http_header(std::string payload, std::string name, bool *found)
+    -> std::tuple<int, int, int, std::string> {
+  int current_line = 0;
+  int idx = 0;
+  int header_start = -1, header_end = -1, header_value_start = -1;
+  std::string header_name = name, header_value = "";
+  name = name;
+  while (idx < payload.length()) {
+    char c = payload[idx];
+    if (c == '\n') {
+      current_line += 1;
+      idx += 1;
+      header_end = idx;
+
+      if (current_line > 0 && header_start > 0 && header_value_start > 0) {
+        if (payload.substr(header_start,
+                           header_value_start - header_start - 1) == name) {
+          header_value =
+              trim(payload.substr(header_value_start, idx - header_value_start)
+                       .substr(0, idx - header_value_start - 1));
+          *found = true;
+          return std::make_tuple(header_start, header_end, header_value_start,
+                                 header_value);
+        }
+      }
+      header_start = -1;
+      header_value_start = -1;
+      continue;
+    } else if (c == '\r') {
+      idx += 1;
+      continue;
+    } else if (c == ':') {
+      if (header_value_start == -1) {
+        idx += 1;
+        header_value_start = idx;
+        continue;
+      }
+    }
+    if (header_start == -1) {
+      header_start = (idx);
+    }
+    idx += 1;
+  }
+  *found = false;
+  return std::make_tuple(-1, -1, -1, "");
+}
+
+auto HttpUtils::trim(const std::string &source) -> std::string {
+  std::string s(source);
+  s.erase(0, s.find_first_not_of(" \n\r\t"));
+  s.erase(s.find_last_not_of(" \n\r\t") + 1);
+  return s;
 }
 
 auto HttpUtils::decode_chunked(std::string &chunked_data) -> std::string {

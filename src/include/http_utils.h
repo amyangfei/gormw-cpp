@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <vector>
 
@@ -23,6 +24,14 @@ public:
                               bool *found) -> std::vector<std::string>;
   static auto set_http_path_param(std::string payload, std::string name,
                                   std::string value) -> std::string;
+  static auto http_status(std::string payload) -> std::string;
+  static auto set_http_status(std::string payload, std::string new_status)
+      -> std::string;
+  static auto http_headers(std::string payload)
+      -> std::unordered_map<std::string, std::string>;
+  static auto http_header(std::string payload, std::string name, bool *found)
+      -> std::tuple<int, int, int, std::string>;
+  static auto trim(const std::string &source) -> std::string;
   static auto decode_chunked(std::string &chunked_data) -> std::string;
 };
 

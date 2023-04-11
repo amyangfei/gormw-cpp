@@ -65,6 +65,35 @@ TEST(GorTest, HttpParam) {
       "/?test=123&qwer=ty&comp=value%20%21%40%23%24%25%5E%26%2A%28%29_%2B");
 }
 
+TEST(GorTest, HttpHeaders) {
+  std::string payload = "GET / HTTP/1.1\r\nHost: localhost:3000\r\nUser-Agent: "
+                        "Cpp\r\nContent-Length:5\r\n\r\nhello";
+  auto headers = HttpUtils::http_headers(payload);
+  EXPECT_EQ(headers["Host"], "localhost:3000");
+  EXPECT_EQ(headers["User-Agent"], "Cpp");
+  EXPECT_EQ(headers["Content-Length"], "5");
+}
+
+TEST(GorTest, HttpHeader) {
+  std::string payload = "GET / HTTP/1.1\r\nHost: localhost:3000\r\nUser-Agent: "
+                        "Cpp\r\nContent-Length:5\r\n\r\nhello";
+  std::vector<std::pair<std::string, std::string>> cases{
+      {"Host", "localhost:3000"},
+      {"User-Agent", "Cpp"},
+      {"Content-Length", "5"},
+  };
+  for (auto it = cases.begin(); it != cases.end(); ++it) {
+    bool found;
+    std::string key = it->first;
+    std::string value = it->second;
+    std::string header_value;
+    std::tie(std::ignore, std::ignore, std::ignore, header_value) =
+        HttpUtils::http_header(payload, key, &found);
+    EXPECT_TRUE(found);
+    EXPECT_EQ(header_value, value);
+  }
+}
+
 TEST(GorTest, DecodeChunked) {
   std::string chunked_data =
       "4\r\nWiki\r\n6\r\npedia \r\nE\r\nin \r\n\r\nchunks.\r\n0\r\n\r\n";
