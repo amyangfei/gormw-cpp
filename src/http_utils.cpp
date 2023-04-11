@@ -222,6 +222,22 @@ auto HttpUtils::http_body(std::string payload) -> std::string {
   return payload.substr(start_index + 4);
 }
 
+auto HttpUtils::set_http_body(std::string payload, std::string new_body)
+    -> std::string {
+  std::string new_payload = set_http_header(payload, "Content-Length",
+                                            std::to_string(new_body.length()));
+  size_t start_index = new_payload.find("\r\n\r\n");
+  if (start_index == std::string::npos) {
+    return new_payload + "\r\n\r\n" + new_body;
+  } else {
+    return new_payload.substr(0, start_index + 4) + new_body;
+  }
+}
+
+auto HttpUtils::decompress_gzip_body(std::string payload) -> std::string {
+  throw std::logic_error("unimplemented");
+}
+
 auto HttpUtils::trim(const std::string &source) -> std::string {
   std::string s(source);
   s.erase(0, s.find_first_not_of(" \n\r\t"));
