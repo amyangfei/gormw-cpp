@@ -12,7 +12,7 @@ TEST(GorTest, Hexlify) {
 
 TEST(GorTest, ParseMessage) {
   std::string payload = Utils::str_to_hex("1 2 3\nGET / HTTP/1.1\r\n\r\n");
-  auto g = std::make_unique<Gor>();
+  auto g = std::make_unique<SimpleGor>();
   auto msg = g->parse_message(payload);
   EXPECT_EQ(msg->type, "1");
   EXPECT_EQ(msg->id, "2");

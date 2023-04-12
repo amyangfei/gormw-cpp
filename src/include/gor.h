@@ -29,6 +29,14 @@ class Gor {
 public:
   virtual ~Gor() = default;
   auto parse_message(std::string line) -> std::unique_ptr<GorMessage>;
+  virtual void process_message(std::unique_ptr<GorMessage> msg) = 0;
+  void emit(std::shared_ptr<GorMessage> msg);
+};
+
+class SimpleGor : public Gor {
+public:
+  void run();
+  void process_message(std::unique_ptr<GorMessage> msg) override;
 };
 
 } // namespace gor

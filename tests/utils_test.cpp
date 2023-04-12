@@ -7,7 +7,6 @@
 using namespace gor;
 
 TEST(UtilsTest, HttpMethod) {
-  Gor *g = new (Gor);
   EXPECT_EQ(HttpUtils::http_method("GET / HTTP/1.1\r\n\r\n"), "GET");
   EXPECT_EQ(HttpUtils::http_method("POST / HTTP/1.1\r\n\r\n"), "POST");
   EXPECT_EQ(HttpUtils::http_method("PUT / HTTP/1.1\r\n\r\n"), "PUT");
@@ -37,7 +36,6 @@ bool vector_contains_value(const std::vector<std::string> &vec,
 TEST(UtilsTest, HttpParam) {
   std::string payload = "GET / HTTP/1.1\r\n\r\n";
   bool found;
-  Gor *g = new (Gor);
   EXPECT_FALSE(found);
   EXPECT_TRUE(HttpUtils::http_path_param(payload, "test", &found).empty());
 

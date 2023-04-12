@@ -38,4 +38,31 @@ auto Gor::parse_message(std::string line) -> std::unique_ptr<GorMessage> {
   return std::make_unique<GorMessage>(metas[0], metas[1], metas, meta,
                                       payload.substr(meta_pos + 1));
 }
+
+void Gor::emit(std::shared_ptr<GorMessage> msg) {
+  std::string chan_prefix;
+  if (msg->type == "1") {
+    chan_prefix = "request";
+  } else if (msg->type == "2") {
+    chan_prefix = "response";
+  } else if (msg->type == "3") {
+    chan_prefix = "replay";
+  }
+  throw std::logic_error("not implemented");
+}
+
+void SimpleGor::run() {
+  std::string line;
+  while (std::getline(std::cin, line)) {
+    try {
+      auto msg = this->parse_message(line);
+      this->process_message(std::move(msg));
+    } catch (std::exception &e) {
+      std::cerr << e.what() << std::endl;
+    }
+  }
+}
+void SimpleGor::process_message(std::unique_ptr<GorMessage> msg) {
+  this->emit(std::move(msg));
+}
 } // namespace gor
