@@ -1,4 +1,6 @@
 #include "gor.h"
+#include "gzip/compress.hpp"
+#include "gzip/decompress.hpp"
 #include "http_utils.h"
 #include <gtest/gtest.h>
 
@@ -147,7 +149,15 @@ TEST(GorTest, HttpBody) {
   body = HttpUtils::http_body(invalid_payload);
   EXPECT_EQ(body, "");
 
-  // TODO: add gzip body test
+  std::string gzip_payload =
+      "GET / HTTP/1.1\r\nUser-Agent: Cpp\r\nContent-Length: ";
+  std::string gzip_data = "before compressed data😊";
+  std::string compressed_data =
+      gzip::compress(gzip_data.c_str(), gzip_data.length());
+  gzip_payload +=
+      std::to_string(compressed_data.length()) + "\r\n\r\n" + compressed_data;
+  body = HttpUtils::http_body(gzip_payload);
+  EXPECT_EQ(gzip::decompress(body.c_str(), body.length()), gzip_data);
 }
 
 TEST(GorTest, SetHttpBody) {
@@ -176,6 +186,8 @@ std::string hex_to_string(std::string hex_str) {
 }
 
 TEST(GorTest, DecompressGZipBody) {
+  std::string expected =
+      R"({"code":"1", "message": "hello", "detail": "黄河、长江。emoji: 😊。"})";
   std::string gzip_body_hex =
       "485454502f312e3120323030204f4b0d0a5365727665723a206e67696e782f312e3233"
       "2e310d0a446174653a204d6f6e2c2031322053657020323032322030313a30383a3431"
@@ -188,9 +200,20 @@ TEST(GorTest, DecompressGZipBody) {
       "d0949a9b9f9569a5f061fe8c2e204fa916005a29ad344e0000000d0a300d0a0d0a";
   std::string gzip_payload = hex_to_string(gzip_body_hex);
   std::string body = HttpUtils::decompress_gzip_body(gzip_payload);
-  EXPECT_EQ(
-      body,
-      R"({"code":"1", "message": "hello", "detail": "黄河、长江。emoji: 😊。"})");
+  EXPECT_EQ(body, expected);
+
+  std::string plain_body_hex =
+      "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2037380d"
+      "0a5365727665723a206e67696e782f312e32332e310d0a446174653a204d6f6e2c203132"
+      "2053657020323032322031343a31333a303320474d540d0a436f6e74656e742d54797065"
+      "3a206170706c69636174696f6e2f6a736f6e0d0a436f6e6e656374696f6e3a206b656570"
+      "2d616c6976650d0a566172793a204163636570742d456e636f64696e670d0a0d0a7b2263"
+      "6f6465223a2231222c20226d657373616765223a202268656c6c6f222c20226465746169"
+      "6c223a2022e9bb84e6b2b3e38081e995bfe6b19fe38082656d6f6a693a20f09f988ae380"
+      "82227d";
+  std::string plain_payload = hex_to_string(plain_body_hex);
+  std::string plain_body = HttpUtils::decompress_gzip_body(plain_payload);
+  EXPECT_EQ(plain_body, expected);
 }
 
 TEST(GorTest, DecodeChunked) {
