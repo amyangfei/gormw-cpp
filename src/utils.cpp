@@ -1,4 +1,4 @@
-#include "http_utils.h"
+#include "utils.h"
 #include "gzip/decompress.hpp"
 #include <iomanip>
 #include <iostream>
@@ -7,7 +7,7 @@
 #include <string>
 #include <tuple>
 
-using namespace gor;
+namespace gor {
 
 auto HttpUtils::parse_query_string(std::string query)
     -> std::unordered_map<std::string, std::vector<std::string>> {
@@ -129,7 +129,7 @@ auto HttpUtils::http_headers(std::string payload)
 
     size_t sep_index = item.find(":");
     std::string key = item.substr(0, sep_index);
-    std::string value = trim(item.substr(sep_index + 1));
+    std::string value = Utils::trim(item.substr(sep_index + 1));
     headers[key] = value;
 
     if (pos == end_index || pos == std::string::npos) {
@@ -156,9 +156,9 @@ auto HttpUtils::http_header(std::string payload, std::string name, bool *found)
       if (current_line > 0 && header_start > 0 && header_value_start > 0) {
         if (payload.substr(header_start,
                            header_value_start - header_start - 1) == name) {
-          header_value =
-              trim(payload.substr(header_value_start, idx - header_value_start)
-                       .substr(0, idx - header_value_start - 1));
+          header_value = Utils::trim(
+              payload.substr(header_value_start, idx - header_value_start)
+                  .substr(0, idx - header_value_start - 1));
           *found = true;
           return std::make_tuple(header_start, header_end, header_value_start,
                                  header_value);
@@ -248,13 +248,6 @@ auto HttpUtils::decompress_gzip_body(std::string payload) -> std::string {
   return body;
 }
 
-auto HttpUtils::trim(const std::string &source) -> std::string {
-  std::string s(source);
-  s.erase(0, s.find_first_not_of(" \n\r\t"));
-  s.erase(s.find_last_not_of(" \n\r\t") + 1);
-  return s;
-}
-
 auto HttpUtils::decode_chunked(std::string &chunked_data) -> std::string {
   std::string result = "";
   while (chunked_data != "") {
@@ -270,3 +263,46 @@ auto HttpUtils::decode_chunked(std::string &chunked_data) -> std::string {
   }
   return result;
 }
+
+auto Utils::trim(const std::string &source) -> std::string {
+  std::string s(source);
+  s.erase(0, s.find_first_not_of(" \n\r\t"));
+  s.erase(s.find_last_not_of(" \n\r\t") + 1);
+  return s;
+}
+
+auto Utils::str_to_hex(const std::string &str) -> std::string {
+  std::stringstream ss;
+  ss << std::hex << std::setfill('0');
+  for (auto c : str) {
+    ss << std::setw(2) << static_cast<int>(c);
+  }
+  return ss.str();
+}
+
+auto Utils::hex_to_str(const std::string &hex_str) -> std::string {
+  // TODO: handle exceptions
+  std::string new_str;
+  new_str.reserve(hex_str.length() / 2);
+  for (size_t i = 0; i < hex_str.length(); i += 2) {
+    unsigned char byte = std::stoul(hex_str.substr(i, 2), nullptr, 16);
+    new_str.push_back(byte);
+  }
+  return new_str;
+}
+
+void Utils::str_split(const std::string &str, const char split,
+                      std::vector<std::string> &res) {
+  if (str == "")
+    return;
+  std::string strs = str + split;
+  size_t pos = strs.find(split);
+
+  while (pos != std::string::npos) {
+    std::string temp = strs.substr(0, pos);
+    res.push_back(temp);
+    strs = strs.substr(pos + 1);
+    pos = strs.find(split);
+  }
+}
+} // namespace gor

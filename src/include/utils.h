@@ -40,8 +40,16 @@ public:
       -> std::string;
   static auto decompress_gzip_body(std::string payload) -> std::string;
 
-  static auto trim(const std::string &source) -> std::string;
   static auto decode_chunked(std::string &chunked_data) -> std::string;
+};
+
+class Utils {
+public:
+  static auto trim(const std::string &source) -> std::string;
+  static auto str_to_hex(const std::string &str) -> std::string;
+  static auto hex_to_str(const std::string &hex_str) -> std::string;
+  static void str_split(const std::string &str, const char split,
+                        std::vector<std::string> &res);
 };
 
 } // namespace gor

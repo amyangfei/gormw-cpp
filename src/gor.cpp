@@ -1,10 +1,11 @@
 #include "gor.h"
+#include "utils.h"
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
 
-using namespace gor;
+namespace gor {
 
 auto GorMessage::hexlify() -> std::string {
   std::stringstream ss;
@@ -20,3 +21,21 @@ auto GorMessage::hexlify() -> std::string {
   ss << std::endl;
   return ss.str();
 }
+
+auto Gor::parse_message(std::string line) -> std::unique_ptr<GorMessage> {
+  std::string payload = Utils::hex_to_str(Utils::trim(line));
+  int meta_pos = payload.find("\n");
+  if (meta_pos == std::string::npos) {
+    throw std::invalid_argument("raw meta separator not found" + payload);
+  }
+  std::string meta = payload.substr(0, meta_pos);
+  std::vector<std::string> metas;
+  metas.reserve(3);
+  Utils::str_split(meta, ' ', metas);
+  if (metas.size() != 3) {
+    throw std::invalid_argument("meta must contain three fields" + meta);
+  }
+  return std::make_unique<GorMessage>(metas[0], metas[1], metas, meta,
+                                      payload.substr(meta_pos + 1));
+}
+} // namespace gor
