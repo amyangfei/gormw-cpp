@@ -64,6 +64,7 @@ private:
 public:
   virtual ~Gor() = default;
   auto parse_message(std::string line) -> std::unique_ptr<GorMessage>;
+  virtual void run() = 0;
   virtual void process_message(std::unique_ptr<GorMessage> msg) = 0;
   void on(std::string channel, callback_fn callback, void *extra = nullptr,
           std::string id = "", std::shared_ptr<GorMessage> request = nullptr,
