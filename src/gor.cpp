@@ -67,7 +67,7 @@ void Gor::emit(std::shared_ptr<GorMessage> msg) {
     chan_prefix = "replay";
   }
   std::shared_ptr<GorMessage> resp;
-  auto iter = [&](std::string channel) {
+  auto iter = [&](std::string channel, bool gc = false) {
     if (this->callbacks.find(channel) != this->callbacks.end()) {
       for (auto &cb : this->callbacks[channel]) {
         auto r = cb->do_callback(this, msg);
@@ -75,11 +75,12 @@ void Gor::emit(std::shared_ptr<GorMessage> msg) {
           resp = r;
         }
       }
+      this->callbacks.erase(channel);
     }
   };
   iter("message");
   iter(chan_prefix);
-  iter(chan_prefix + "#" + msg->id);
+  iter(chan_prefix + "#" + msg->id, true);
   if (resp != nullptr) {
     std::cout << resp->hexlify() << std::flush;
   }
