@@ -7,6 +7,11 @@
 
 namespace gor {
 
+auto Callback::do_callback(Gor *g, std::shared_ptr<GorMessage> msg)
+    -> std::shared_ptr<GorMessage> {
+  return this->callback(g, msg, this->id, this->request, this->response);
+}
+
 auto GorMessage::hexlify() -> std::string {
   std::stringstream ss;
   for (char &c : this->raw_meta) {
@@ -39,6 +44,19 @@ auto Gor::parse_message(std::string line) -> std::unique_ptr<GorMessage> {
                                       payload.substr(meta_pos + 1));
 }
 
+void Gor::on(std::string channel, callback_fn callback, std::string id,
+             std::shared_ptr<GorMessage> request,
+             std::shared_ptr<GorMessage> response) {
+  if (!id.empty()) {
+    channel += "#" + id;
+  }
+  if (this->callbacks.find(channel) == this->callbacks.end()) {
+    this->callbacks[channel] = std::vector<Callback *>();
+  }
+  auto cb = new Callback(id, request, response, callback);
+  this->callbacks[channel].emplace_back(cb);
+}
+
 void Gor::emit(std::shared_ptr<GorMessage> msg) {
   std::string chan_prefix;
   if (msg->type == "1") {
@@ -48,7 +66,23 @@ void Gor::emit(std::shared_ptr<GorMessage> msg) {
   } else if (msg->type == "3") {
     chan_prefix = "replay";
   }
-  throw std::logic_error("not implemented");
+  std::shared_ptr<GorMessage> resp;
+  auto iter = [&](std::string channel) {
+    if (this->callbacks.find(channel) != this->callbacks.end()) {
+      for (auto &cb : this->callbacks[channel]) {
+        auto r = cb->do_callback(this, msg);
+        if (r != nullptr) {
+          resp = r;
+        }
+      }
+    }
+  };
+  iter("message");
+  iter(chan_prefix);
+  iter(chan_prefix + "#" + msg->id);
+  if (resp != nullptr) {
+    std::cout << resp->hexlify() << std::flush;
+  }
 }
 
 void SimpleGor::run() {
