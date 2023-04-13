@@ -9,7 +9,8 @@ namespace gor {
 
 auto Callback::do_callback(Gor *g, std::shared_ptr<GorMessage> msg)
     -> std::shared_ptr<GorMessage> {
-  return this->callback(g, msg, this->id, this->request, this->response);
+  return this->callback(g, msg, this->id, this->request, this->response,
+                        this->extra);
 }
 
 auto GorMessage::hexlify() -> std::string {
@@ -44,8 +45,8 @@ auto Gor::parse_message(std::string line) -> std::unique_ptr<GorMessage> {
                                       payload.substr(meta_pos + 1));
 }
 
-void Gor::on(std::string channel, callback_fn callback, std::string id,
-             std::shared_ptr<GorMessage> request,
+void Gor::on(std::string channel, callback_fn callback, void *extra,
+             std::string id, std::shared_ptr<GorMessage> request,
              std::shared_ptr<GorMessage> response) {
   if (!id.empty()) {
     channel += "#" + id;
@@ -53,7 +54,7 @@ void Gor::on(std::string channel, callback_fn callback, std::string id,
   if (this->callbacks.find(channel) == this->callbacks.end()) {
     this->callbacks[channel] = std::vector<Callback *>();
   }
-  auto cb = new Callback(id, request, response, callback);
+  auto cb = new Callback(id, request, response, extra, callback);
   this->callbacks[channel].emplace_back(cb);
 }
 
@@ -75,7 +76,9 @@ void Gor::emit(std::shared_ptr<GorMessage> msg) {
           resp = r;
         }
       }
-      this->callbacks.erase(channel);
+      if (gc) {
+        this->callbacks.erase(channel);
+      }
     }
   };
   iter("message");
@@ -97,6 +100,7 @@ void SimpleGor::run() {
     }
   }
 }
+
 void SimpleGor::process_message(std::unique_ptr<GorMessage> msg) {
   this->emit(std::move(msg));
 }

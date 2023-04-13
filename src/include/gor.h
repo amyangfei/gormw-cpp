@@ -16,7 +16,8 @@ class Callback;
 
 using callback_fn = std::shared_ptr<GorMessage> (*)(
     Gor *g, std::shared_ptr<GorMessage> msg, std::string id,
-    std::shared_ptr<GorMessage> request, std::shared_ptr<GorMessage> response);
+    std::shared_ptr<GorMessage> request, std::shared_ptr<GorMessage> response,
+    void *extra);
 
 class GorMessage {
 public:
@@ -40,12 +41,15 @@ private:
   std::string id;
   std::shared_ptr<GorMessage> request;
   std::shared_ptr<GorMessage> response;
+  void *extra;
   callback_fn callback;
 
 public:
   Callback(std::string _id, std::shared_ptr<GorMessage> _request,
-           std::shared_ptr<GorMessage> _response, callback_fn _callback)
-      : id(_id), request(_request), response(_response), callback(_callback) {
+           std::shared_ptr<GorMessage> _response, void *_extra,
+           callback_fn _callback)
+      : id(_id), request(_request), response(_response), extra(_extra),
+        callback(_callback) {
     start = std::chrono::system_clock::now();
   }
   ~Callback() = default;
@@ -61,9 +65,9 @@ public:
   virtual ~Gor() = default;
   auto parse_message(std::string line) -> std::unique_ptr<GorMessage>;
   virtual void process_message(std::unique_ptr<GorMessage> msg) = 0;
-  void on(std::string channel, callback_fn callback, std::string id,
-          std::shared_ptr<GorMessage> request,
-          std::shared_ptr<GorMessage> response);
+  void on(std::string channel, callback_fn callback, void *extra = nullptr,
+          std::string id = "", std::shared_ptr<GorMessage> request = nullptr,
+          std::shared_ptr<GorMessage> response = nullptr);
   void emit(std::shared_ptr<GorMessage> msg);
 };
 
