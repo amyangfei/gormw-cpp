@@ -2,6 +2,8 @@
 #include "utils.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <iostream>
+#include <sstream>
 
 using namespace gor;
 
@@ -46,4 +48,35 @@ TEST(GorTest, SimpleGorInit) {
   g->emit(std::move(resp));
   g->emit(std::move(resp2));
   EXPECT_EQ(counter, 5);
+}
+
+TEST(GorTest, SimpleGorRun) {
+  auto g = std::make_unique<SimpleGor>();
+  callback_fn inc = [](Gor *g, std::shared_ptr<GorMessage> msg, std::string id,
+                       std::shared_ptr<GorMessage> request,
+                       std::shared_ptr<GorMessage> response,
+                       void *extra) -> std::shared_ptr<GorMessage> {
+    int *p_counter = static_cast<int *>(extra);
+    *p_counter += 1;
+    return nullptr;
+  };
+  int counter = 0;
+  g->on("message", inc, &counter);
+  g->on("request", inc, &counter);
+  g->on("response", inc, &counter, "2");
+
+  std::string payload =
+      Utils::str_to_hex("1 2 3\nGET / HTTP/1.1\r\n\r\n") + "\n" +
+      Utils::str_to_hex("2 2 3\nHTTP/1.1 200 OK\r\n\r\n") + "\n" +
+      Utils::str_to_hex("2 3 3\nHTTP/1.1 200 OK\r\n\r\n");
+  std::istringstream sin{payload};
+  // Temporarily redirect cin to string streams to allow control
+  // of input and observation of output.
+  auto cin_rdbuf = std::cin.rdbuf(sin.rdbuf());
+
+  g->run();
+  EXPECT_EQ(counter, 5);
+
+  // Reset cin to normal.
+  std::cin.rdbuf(cin_rdbuf);
 }
