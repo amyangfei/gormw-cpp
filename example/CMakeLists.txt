@@ -11,6 +11,5 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(gor)
 
 add_executable(example example.cpp)
-include_directories(${gor_SOURCE_DIR}/src/include)
-message(gor_source_dir=${gor_SOURCE_DIR})
+target_include_directories(example PRIVATE ${gor_SOURCE_DIR}/src/include)
 target_link_libraries(example PRIVATE gor z)
