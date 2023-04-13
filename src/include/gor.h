@@ -74,7 +74,7 @@ public:
 
 class SimpleGor : public Gor {
 public:
-  void run();
+  void run() override;
   void process_message(std::unique_ptr<GorMessage> msg) override;
 };
 
