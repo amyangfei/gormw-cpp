@@ -1,12 +1,10 @@
-name: Unit Tests
+name: Build and Tests
 
 on:
   push:
       branches: [ main ]
   pull_request:
       branches: [ main ]
-
-
 
 jobs:
   build-and-test:
@@ -23,3 +21,9 @@ jobs:
         cmake ..
         make build-tests
         for t in $(ls test); do test/$t; done
+  
+    - name: build example
+      run: |
+        cd example && mkdir build && cd build
+        cmake ..
+        make example
