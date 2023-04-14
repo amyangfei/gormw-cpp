@@ -50,7 +50,8 @@ foreach (gor_test_source ${GOR_TEST_SOURCES})
             TIMEOUT 120
             )
 
-    target_link_libraries(${gor_test_name} gor gtest gmock_main z)
+    target_include_directories(${gor_test_name} PRIVATE ${GOR_SRC_INCLUDE_DIR})
+    target_link_libraries(${gor_test_name} PRIVATE gor gtest gmock_main z)
 
     # Set test target properties and dependencies.
     set_target_properties(${gor_test_name}
