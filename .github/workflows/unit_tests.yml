@@ -13,9 +13,9 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: build and run unit tests
-      run: |
-        mkdir build && cd build
-        cmake ..
-        make gor_test utils_test
-        ./test/gor_test
-        ./test/utils_test
+        run: |
+          mkdir build && cd build
+          cmake ..
+          make gor_test utils_test
+          ./test/gor_test
+          ./test/utils_test
