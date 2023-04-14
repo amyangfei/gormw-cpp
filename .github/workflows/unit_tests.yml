@@ -6,16 +6,20 @@ on:
   pull_request:
       branches: [ main ]
 
+
+
 jobs:
   build-and-test:
-      runs-on: ubuntu-latest
-      steps:
-      - uses: actions/checkout@v2
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v2
 
-      - name: build and run unit tests
+    - name: build and run unit tests
       run: |
         mkdir build && cd build
         cmake ..
-        make gor_test utils_test
-        ./test/gor_test
-        ./test/utils_test
+        make build-tests
+        for t in $(ls test); do test/$t; done
