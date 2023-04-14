@@ -6,9 +6,13 @@ on:
   pull_request:
       branches: [ main ]
 
+strategy:
+  matrix:
+    os: [macos-latest, ubuntu-latest]
+
 jobs:
   build-and-test:
-      runs-on: ubuntu-latest
+      runs-on: ${{ matrix.os }}
       steps:
       - uses: actions/checkout@v2
 
