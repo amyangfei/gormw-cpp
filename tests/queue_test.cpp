@@ -1,6 +1,7 @@
 #include "queue.h"
 #include <atomic>
 #include <chrono>
+#include <functional>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <mutex>

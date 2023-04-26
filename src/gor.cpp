@@ -2,6 +2,7 @@
 #include "queue.h"
 #include "utils.h"
 #include <atomic>
+#include <functional>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
