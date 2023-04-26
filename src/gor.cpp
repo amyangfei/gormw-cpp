@@ -1,9 +1,13 @@
 #include "gor.h"
+#include "queue.h"
 #include "utils.h"
+#include <atomic>
+#include <functional>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <thread>
 
 namespace gor {
 
@@ -90,18 +94,52 @@ void Gor::emit(std::shared_ptr<GorMessage> msg) {
 }
 
 void SimpleGor::run() {
-  std::string line;
-  while (std::getline(std::cin, line)) {
+  bounded_queue<std::unique_ptr<GorMessage>> q{16};
+  auto read_from_stdin = [&]() {
+    std::string line;
+    while (std::getline(std::cin, line)) {
+      try {
+        auto msg = this->parse_message(line);
+        q.push(std::move(msg));
+      } catch (std::exception &e) {
+        std::cerr << e.what() << std::endl;
+        break;
+      }
+    }
+    this->mark_done();
+  };
+
+  // returns true on error, false on success
+  auto emit_one_msg = [this](std::unique_ptr<GorMessage> msg) -> bool {
     try {
-      auto msg = this->parse_message(line);
-      this->process_message(std::move(msg));
+      this->emit(std::move(msg));
     } catch (std::exception &e) {
       std::cerr << e.what() << std::endl;
+      return true;
     }
-  }
-}
+    return false;
+  };
 
-void SimpleGor::process_message(std::unique_ptr<GorMessage> msg) {
-  this->emit(std::move(msg));
+  auto work = [&]() {
+    std::unique_ptr<gor::GorMessage> msg;
+    while (!this->done_) {
+      if (!q.pop(msg) || emit_one_msg(std::move(msg))) {
+        break;
+      }
+    }
+    if (this->done_) {
+      while (q.size() > 0) {
+        if (!q.pop(msg) || emit_one_msg(std::move(msg))) {
+          break;
+        }
+      }
+    }
+    this->mark_done();
+  };
+  std::thread reader(std::bind(read_from_stdin));
+  std::thread worker(std::bind(work));
+
+  reader.join();
+  worker.join();
 }
 } // namespace gor
