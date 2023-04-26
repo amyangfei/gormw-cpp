@@ -1,6 +1,7 @@
 #ifndef INCLUDE_GOR_H_
 #define INCLUDE_GOR_H_
 
+#include <atomic>
 #include <chrono>
 #include <ctime>
 #include <iostream>
@@ -66,7 +67,6 @@ public:
   virtual ~Gor() = default;
   auto parse_message(std::string line) -> std::unique_ptr<GorMessage>;
   virtual void run() = 0;
-  virtual void process_message(std::unique_ptr<GorMessage> msg) = 0;
   void on(std::string channel, callback_fn callback, void *extra = nullptr,
           std::string id = "", std::shared_ptr<GorMessage> request = nullptr,
           std::shared_ptr<GorMessage> response = nullptr);
@@ -75,8 +75,12 @@ public:
 
 class SimpleGor : public Gor {
 public:
+  SimpleGor() : done_(false) {}
   void run() override;
-  void process_message(std::unique_ptr<GorMessage> msg) override;
+  void mark_done() { done_ = true; }
+
+private:
+  std::atomic_bool done_;
 };
 
 } // namespace gor

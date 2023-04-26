@@ -13,10 +13,11 @@
 #include "utils.h"
 #include <iostream>
 
-auto on_replay(gor::Gor *g, std::shared_ptr<gor::GorMessage> msg,
-               std::string id, std::shared_ptr<gor::GorMessage> request,
-               std::shared_ptr<gor::GorMessage> response, void *extra)
-    -> std::shared_ptr<gor::GorMessage> {
+using sptr_gor_msg = std::shared_ptr<gor::GorMessage>;
+
+auto on_replay(gor::Gor *g, sptr_gor_msg msg, std::string id,
+               sptr_gor_msg request, sptr_gor_msg response, void *extra)
+    -> sptr_gor_msg {
   auto replay_status = gor::HttpUtils::http_status(msg->http);
   auto resp_status = gor::HttpUtils::http_status(response->http);
   if (replay_status != resp_status) {
@@ -29,18 +30,16 @@ auto on_replay(gor::Gor *g, std::shared_ptr<gor::GorMessage> msg,
   return nullptr;
 }
 
-auto on_response(gor::Gor *g, std::shared_ptr<gor::GorMessage> msg,
-                 std::string id, std::shared_ptr<gor::GorMessage> request,
-                 std::shared_ptr<gor::GorMessage> response, void *extra)
-    -> std::shared_ptr<gor::GorMessage> {
+auto on_response(gor::Gor *g, sptr_gor_msg msg, std::string id,
+                 sptr_gor_msg request, sptr_gor_msg response, void *extra)
+    -> sptr_gor_msg {
   g->on("replay", on_replay, nullptr, request->id, request, msg);
   return nullptr;
 }
 
-auto on_request(gor::Gor *g, std::shared_ptr<gor::GorMessage> msg,
-                std::string id, std::shared_ptr<gor::GorMessage> request,
-                std::shared_ptr<gor::GorMessage> response, void *extra)
-    -> std::shared_ptr<gor::GorMessage> {
+auto on_request(gor::Gor *g, sptr_gor_msg msg, std::string id,
+                sptr_gor_msg request, sptr_gor_msg response, void *extra)
+    -> sptr_gor_msg {
   g->on("response", on_response, nullptr, msg->id, msg);
   return nullptr;
 }
